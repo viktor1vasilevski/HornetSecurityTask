@@ -41,7 +41,7 @@ public class AuthService : IAuthService
                 {
                     Message = AuthConstants.USER_NOT_FOUND,
                     Success = false,
-                    NotificationType = NotificationType.Info
+                    NotificationType = NotificationType.Message
                 };
             }
 
@@ -53,7 +53,7 @@ public class AuthService : IAuthService
                 {
                     Message = AuthConstants.INVALID_PASSWORD,
                     Success = false,
-                    NotificationType = NotificationType.Info
+                    NotificationType = NotificationType.Message
                 };
             }
 
@@ -73,7 +73,7 @@ public class AuthService : IAuthService
             {
                 Message = $"{AuthConstants.ERROR_LOGIN}:{ex.Message}",
                 Success = false,
-                NotificationType = NotificationType.Error
+                NotificationType = NotificationType.ServerError
             };
         }
         
@@ -86,7 +86,14 @@ public class AuthService : IAuthService
             var doesUserExist = await _userRepository.ExistsAsync(x => x.Email.ToLower() == request.Email.ToLower());
 
             if (doesUserExist)
-                return new BaseResponse { Message = AuthConstants.USER_EXISTS, Success = false, NotificationType = NotificationType.Info };
+            {
+                return new BaseResponse
+                {
+                    Message = AuthConstants.USER_EXISTS,
+                    Success = false,
+                    NotificationType = NotificationType.Message
+                };
+            }
 
             var saltKey = GenerateSalt();
 
@@ -104,7 +111,12 @@ public class AuthService : IAuthService
             await _userRepository.InsertAsync(user);
             await _uow.SaveChangesAsync();
 
-            return new BaseResponse { Message = AuthConstants.USER_REGISTER_SUCCESS, Success = true, NotificationType = NotificationType.Success };
+            return new BaseResponse 
+            { 
+                Message = AuthConstants.USER_REGISTER_SUCCESS, 
+                Success = true,
+                NotificationType = NotificationType.Success 
+            };
         }
         catch (Exception ex)
         {
@@ -112,7 +124,7 @@ public class AuthService : IAuthService
             { 
                 Message = $"{AuthConstants.ERROR_REGISTER}:{ex.Message}", 
                 Success = false,
-                NotificationType = NotificationType.Error
+                NotificationType = NotificationType.ServerError
             };
         }
         

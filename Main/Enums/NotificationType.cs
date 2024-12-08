@@ -3,7 +3,7 @@
 public enum NotificationType
 {
     Success,
-    Error,
-    Info,
+    ServerError,
+    Message,
     Warning
 }

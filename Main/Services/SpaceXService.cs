@@ -23,11 +23,24 @@ public class SpaceXService : ISpaceXService
         try
         {
             var launchesUrl = _configuration["SpaceX:LaunchesUrl"];
-            var response = await _httpClient.GetStringAsync($"{launchesUrl}/{type}");
+            var responseMessage = await _httpClient.GetAsync($"{launchesUrl}/{type}");
 
-            var launches = JsonConvert.DeserializeObject<List<SpaceXLaunchDTO>>(response);
+            if (!responseMessage.IsSuccessStatusCode)
+            {
+                var errorMessage = await responseMessage.Content.ReadAsStringAsync();
+                return new ApiResponse<List<SpaceXLaunchDTO>>
+                {
+                    Success = false,
+                    Message = $"{SpaceXConstants.ERROR_FETCHING_LAUNCH_DATA} : {errorMessage}",
+                    NotificationType = NotificationType.ServerError
+                };
+            }
 
-            var launchesDTO = launches.Select(x => new SpaceXLaunchDTO
+            var responseContent = await responseMessage.Content.ReadAsStringAsync();
+
+            var launches = JsonConvert.DeserializeObject<List<SpaceXLaunchDTO>>(responseContent);
+
+            var launchesDTO = launches?.Select(x => new SpaceXLaunchDTO
             {
                 Name = x.Name,
                 DateUtc = x.DateUtc,
@@ -61,15 +74,20 @@ public class SpaceXService : ISpaceXService
                 }
             }).ToList();
 
-            return new ApiResponse<List<SpaceXLaunchDTO>> { Data = launchesDTO, Success = true, NotificationType = NotificationType.Success };
+            return new ApiResponse<List<SpaceXLaunchDTO>> 
+            { 
+                Data = launchesDTO, 
+                Success = true, 
+                NotificationType = NotificationType.Success 
+            };
         }
         catch (Exception ex)
         {
             return new ApiResponse<List<SpaceXLaunchDTO>> 
             { 
                 Success = false,
-                Message = $"{SpaceXConstants.ERROR_FETCHING_LAUNCH_DATA}:{ex.Message}",
-                NotificationType = NotificationType.Error
+                Message = $"{ErrorMessagesConstants.GenericServerError} : {ex.Message}",
+                NotificationType = NotificationType.ServerError
             };
         }
         
@@ -80,22 +98,34 @@ public class SpaceXService : ISpaceXService
         try
         {
             var launchesUrl = _configuration["SpaceX:LaunchesUrl"];
-            var response = await _httpClient.GetStringAsync($"{launchesUrl}/latest");
+            var responseMessage = await _httpClient.GetAsync($"{launchesUrl}/latest");
 
-            var launch = JsonConvert.DeserializeObject<SpaceXLaunchDTO>(response);
+            if (!responseMessage.IsSuccessStatusCode)
+            {
+                var errorMessage = await responseMessage.Content.ReadAsStringAsync();
+                return new ApiResponse<SpaceXLaunchDTO>
+                {
+                    Success = false,
+                    Message = $"{SpaceXConstants.ERROR_FETCHING_LAUNCH_DATA} : {errorMessage}",
+                    NotificationType = NotificationType.ServerError
+                };
+            }
+
+            var responseContent = await responseMessage.Content.ReadAsStringAsync();
+            var launch = JsonConvert.DeserializeObject<SpaceXLaunchDTO>(responseContent);
 
             return new ApiResponse<SpaceXLaunchDTO>
             {
                 Success = true,
                 Data = new SpaceXLaunchDTO
                 {
-                    Name = launch.Name,
-                    DateUtc = launch.DateUtc,
-                    Webcast = launch.Links?.Webcast,
-                    Wikipedia = launch.Links?.Wikipedia,
-                    Success = launch.Success,
-                    Ships = launch.Ships ?? new List<string>(),
-                    Crew = launch.Crew?.Select(c => new CrewDTO
+                    Name = launch?.Name,
+                    DateUtc = launch?.DateUtc,
+                    Webcast = launch?.Links?.Webcast,
+                    Wikipedia = launch?.Links?.Wikipedia,
+                    Success = launch?.Success,
+                    Ships = launch?.Ships ?? new List<string>(),
+                    Crew = launch?.Crew?.Select(c => new CrewDTO
                     {
                         Role = c.Role
                     }).ToList(),
@@ -103,21 +133,21 @@ public class SpaceXService : ISpaceXService
                     {
                         Patch = new PatchDTO
                         {
-                            Small = launch.Links?.Patch?.Small,
-                            Large = launch.Links?.Patch?.Large
+                            Small = launch?.Links?.Patch?.Small,
+                            Large = launch?.Links?.Patch?.Large
                         },
                         Reddit = new RedditDTO
                         {
-                            Launch = launch.Links?.Reddit?.Launch
+                            Launch = launch?.Links?.Reddit?.Launch
                         },
                         Flickr = new FlickrDTO
                         {
-                            Small = launch.Links?.Flickr?.Small ?? new List<string>(),
-                            Original = launch.Links?.Flickr?.Original ?? new List<string>()
+                            Small = launch?.Links?.Flickr?.Small ?? new List<string>(),
+                            Original = launch?.Links?.Flickr?.Original ?? new List<string>()
                         },
-                        Webcast = launch.Links?.Webcast,
-                        Wikipedia = launch.Links?.Wikipedia,
-                        YoutubeId = launch.Links?.YoutubeId
+                        Webcast = launch?.Links?.Webcast,
+                        Wikipedia = launch?.Links?.Wikipedia,
+                        YoutubeId = launch?.Links?.YoutubeId
                     }
                 }
             };
@@ -127,8 +157,8 @@ public class SpaceXService : ISpaceXService
             return new ApiResponse<SpaceXLaunchDTO> 
             { 
                 Success = false,
-                Message = $"{SpaceXConstants.ERROR_FETCHING_LAUNCH_DATA}:{ex.Message}",
-                NotificationType = NotificationType.Error
+                Message = $"{ErrorMessagesConstants.GenericServerError} : {ex.Message}",
+                NotificationType = NotificationType.ServerError
             };
         }
         

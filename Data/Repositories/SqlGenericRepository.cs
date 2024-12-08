@@ -16,13 +16,6 @@ public class SqlGenericRepository<TEntity, TContext> : IGenericRepository<TEntit
         dbSet = context.Set<TEntity>();
     }
 
-    public TEntity Delete(object id)
-    {
-        TEntity entity = dbSet.Find(id);
-        Delete(entity);
-        return entity;
-    }
-
     public void Delete(TEntity entity)
     {
         if (context.Entry(entity).State == EntityState.Detached)
@@ -44,29 +37,19 @@ public class SqlGenericRepository<TEntity, TContext> : IGenericRepository<TEntit
         dbSet.RemoveRange(entities);
     }
 
-    public void DeleteRange(Expression<Func<TEntity, bool>> filter = null)
+    public bool Exists(Expression<Func<TEntity, bool>>? filter = null)
     {
         IQueryable<TEntity> query = dbSet;
-        if (filter != null)
-        {
-            query = query.Where(filter);
-            dbSet.RemoveRange(query);
-        }
+        return query.Any(filter ?? (_ => true));
     }
 
-    public bool Exists(Expression<Func<TEntity, bool>> filter = null)
+    public async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>>? filter = null)
     {
         IQueryable<TEntity> query = dbSet;
-        return query.Any(filter);
+        return await query.AnyAsync(filter ?? (_ => true));
     }
 
-    public async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> filter = null)
-    {
-        IQueryable<TEntity> query = dbSet;
-        return await query.AnyAsync(filter);
-    }
-
-    public IEnumerable<TEntity> Get(Expression<Func<TEntity, bool>> filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null)
+    public IEnumerable<TEntity> Get(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null)
     {
         IQueryable<TEntity> query = dbSet;
         if (filter != null)
@@ -81,10 +64,10 @@ public class SqlGenericRepository<TEntity, TContext> : IGenericRepository<TEntit
         {
             query = include(query);
         }
-        return query.ToList();
+        return [.. query];
     }
 
-    public async Task<IEnumerable<TEntity>> GetAsync(Expression<Func<TEntity, bool>> filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null)
+    public async Task<IEnumerable<TEntity>> GetAsync(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null)
     {
         IQueryable<TEntity> query = dbSet;
         if (filter != null)
@@ -102,7 +85,7 @@ public class SqlGenericRepository<TEntity, TContext> : IGenericRepository<TEntit
         return await query.ToListAsync();
     }
 
-    public IQueryable<TEntity> GetAsQueryable(Expression<Func<TEntity, bool>> filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null)
+    public IQueryable<TEntity> GetAsQueryable(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null)
     {
         IQueryable<TEntity> query = dbSet;
         if (filter != null)
@@ -143,28 +126,11 @@ public class SqlGenericRepository<TEntity, TContext> : IGenericRepository<TEntit
         dbSet.AddRange(entities);
     }
 
-    public object SetObjectStateToAdded(object obj)
-    {
-        context.Entry(obj).State = EntityState.Added;
-        return obj;
-    }
-
-    public object SetObjectStateToDetached(object obj)
-    {
-        context.Entry(obj).State = EntityState.Detached;
-        return obj;
-    }
-
     public TEntity Update(TEntity entity)
     {
         var entry = context.Entry(entity);
         context.Entry(entity).State = EntityState.Detached;
         context.Entry(entity).State = EntityState.Modified;
         return entity;
-    }
-
-    public void UpdateWithRelatedEntities(TEntity entity)
-    {
-        dbSet.Update(entity);
     }
 }

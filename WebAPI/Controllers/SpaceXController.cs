@@ -1,4 +1,5 @@
-﻿using Main.Interfaces;
+﻿using Main.Enums;
+using Main.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,14 +23,20 @@ namespace WebAPI.Controllers
         public async Task<IActionResult> GetLatestLaunch()
         {
             var response = await _spaceXService.GetLatestLaunchDataAsync();
+
+            if(!response.Success && response.NotificationType == NotificationType.ServerError)
+                return StatusCode(500, response);
             return Ok(response);
         }
 
-        [HttpGet("list/{type}")]
+        [HttpGet("launches/{type}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetLaunchList([FromRoute] string type)
         {
             var response = await _spaceXService.GetListLaunchDataAsync(type);
+
+            if (!response.Success && response.NotificationType == NotificationType.ServerError)
+                return StatusCode(500, response);
             return Ok(response);
         }
     }
