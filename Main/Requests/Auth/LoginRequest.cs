@@ -1,15 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Main.DTOs;
+namespace Main.Requests.Auth;
 
-public class UserRequest
+public class LoginRequest
 {
-    [Required, MinLength(3)]
-    public required string FirstName { get; set; }
-
-    [Required, MinLength(3)]
-    public required string LastName { get; set; }
-
     [Required]
     [RegularExpression(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z]{2,})+$",
         ErrorMessage = "Please enter a valid email address in the format 'example@domain.com'.")]

@@ -1,4 +1,4 @@
-﻿namespace Main.DTOs;
+﻿namespace Main.Responses.Auth;
 
 public class TokenResponse
 {

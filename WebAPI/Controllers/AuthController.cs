@@ -1,6 +1,6 @@
-﻿using Main.DTOs;
-using Main.Enums;
+﻿using Main.Enums;
 using Main.Interfaces;
+using Main.Requests.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -51,7 +51,7 @@ namespace WebAPI.Controllers
             }
             else
             {
-                return Ok(response);
+                return Created("", response);
             }
         }
 
