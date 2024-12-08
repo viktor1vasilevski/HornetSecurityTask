@@ -4,6 +4,5 @@ public enum NotificationType
 {
     Success,
     ServerError,
-    Message,
-    Warning
+    Message
 }
