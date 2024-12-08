@@ -144,7 +144,7 @@ public class AuthService : IAuthService
     private string GenerateJwtToken(User user)
     {
         var secretKey = _configuration["JwtSettings:Secret"];
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? "asdasd"));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
