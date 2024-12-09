@@ -2,7 +2,6 @@
 using EntityModels.Interfaces;
 using EntityModels.Models;
 using Main.Constants;
-using Main.DTOs;
 using Main.Enums;
 using Main.Helpers;
 using Main.Interfaces;
@@ -144,7 +143,7 @@ public class AuthService : IAuthService
     private string GenerateJwtToken(User user)
     {
         var secretKey = _configuration["JwtSettings:Secret"];
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? "asdasd"));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
